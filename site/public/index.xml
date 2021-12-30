@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title></title>
-    <link>http://example.org/</link>
-    <description>Recent content on </description>
+    <title>Almost Always Unsigned</title>
+    <link>https://graphitemaster.github.io/aau/</link>
+    <description>Recent content on Almost Always Unsigned</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language><atom:link href="https://graphitemaster.github.io/aau/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Fibers, Oh My!</title>
-      <link>http://example.org/</link>
-      <pubDate>Sat, 03 Oct 2020 13:15:07 -0400</pubDate>
+      <title>Almost Always Unsigned</title>
+      <link>https://graphitemaster.github.io/aau/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>http://example.org/</guid>
-      <description>Fibers, Oh My! #  Written by Dale Weiler, last updated Oct 5th, 2020
-  Twitter  GitHub  It&amp;rsquo;s been brought to the attention of many people in the game development industry that you can use fibers to parallelize your engines and games. This one presentation in particular: Parallelizing the Naughty Dog engine using fibers has been a talking point since it came out in 2015. However, it doesn&amp;rsquo;t quite go into the details enough to really explain why fibers are a good fit or how to actually implement them.</description>
+      <guid>https://graphitemaster.github.io/aau/</guid>
+      <description>Almost Always Unsigned #  Written by Dale Weiler
+  Twitter  GitHub  The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively.</description>
     </item>
     
   </channel>
