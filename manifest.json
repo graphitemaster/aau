@@ -1,14 +1,14 @@
 {
-  "name": "",
-  "short_name": "",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Almost Always Unsigned",
+  "short_name": "Almost Always Unsigned",
+  "start_url": "/aau/",
+  "scope": "/aau/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/aau/favicon.svg",
       "sizes": "512x512"
     }
   ]
