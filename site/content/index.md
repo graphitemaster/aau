@@ -109,7 +109,7 @@ behavior for them, e.g `INT_MAX - INT_MIN` is still going to be incorrect.
 There just isn't a trivial way to do this safely, this is the best technique
 I currently know of.
 ```cpp
-if (y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y) {
+if ((y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y)) {
     // error
 } else {
     delta = abs(x - y);
@@ -161,8 +161,8 @@ but we'll see that in the following:
 size_t mid = (low + high) / 2;
 ```
 This doesn't actually work for e.g: `low = 0x80000000` and `high = 0x80000002`,
-which would underflow and produce `2`, divided by `2`, producing `1`, when the
-correct answer is actually `0x80000001`.
+which would underflow and produce `2` which divided by `2` produces `1`, when
+the correct value is actually `0x80000001`.
 
 Where unsigned does benefit here is when these are used as indices into an array.
 The signed behavior will almost certainly produce invalid indices which leads to
@@ -301,7 +301,7 @@ in LLVM which applies to all languages which use LLVM:
 * `INT_MIN / -1`, or `INT_MAX % -1`
 * `INT_MAX - INT_MIN`
 
-> These are certain to produce invalid results in languages like Odin.
+> These are certain to produce invalid results in languages like Rust and Odin.
 
 ## What about trapping?
 Some languages such as Rust instead take a different approach where any
@@ -399,7 +399,7 @@ signed integer overflow and underflow in standard C or C++.
 if ((b > 0 && a > INT_MAX - b) || (b < 0 && a < INT_MIN - b)) // addition overflows
 if ((b > 0 && a < INT_MIN + b) || (b < 0 && a > INT_MAX + b)) // subtraction underflows
 ```
-> Good luck remembering and typing this monstrosity when you need it.
+> Good luck remembering and typing these monstrosities when you need it.
 
 ### Your code will be simpler and faster
 In addition to all the examples I've already shown where unsigned just does the
