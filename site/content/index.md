@@ -16,8 +16,10 @@ iteration count of a loop reflects this concept as well. There should be a
 propensity to use unsigned integers more often than signed, yet despite this,
 most code incorrectly choses to use signed integers almost exclusively.
 
-The code presented in here will be mostly C and C++, but it also applies to
-other languages as well.
+The code presented in here will be mostly C and C++ and will be mostly specific
+to C and C inspired languages, but we'll see later that it also applies to
+other languages which attempt to solve some of these problems, just in different
+ways.
 
 ## The arguments against unsigned
 There are a lot of arguments against the use of unsigned integers. Lets discuss
@@ -60,7 +62,7 @@ allowed. Tough luck if you needed a value that large and if you followed the
 sage advice of Google to always used signed and had that large value anyways,
 well now you have an even worse danger. Mainly, for languages like C and C++,
 you just unconditionally invoked undefined behavior since signed integer
-overflow is undefined. So we'll call this a "tie".
+overflow is undefined.
 
 The correct approach here is that unsigned underflow is well-defined in C and
 C++, and we should be teaching the behavior of wrapping arithmetic as it's
@@ -80,6 +82,10 @@ With this approach, no casts were needed, no silent bugs were introduced, and
 the "pathological" input still works correctly. In fact, this form permits every
 possible value from `[0, 0xffffffffffffffff)`, covering the entire range.
 
+It should be noted that if `size == 0` this loop still works because `0 - 1`
+produces the largest possible value of the unsigned type which is larger than
+`size` (still `0`) and so the loop never enters.
+
 ### The difference of two numbers can become negative
 When you want to compute the difference (or delta) between two numbers, it's
 often the case to want to express that as:
@@ -95,17 +101,28 @@ underflow. The problem with this argument is it's not valid because the code
 itself is simply incorrect regardless of the signedness of `x` and `y`. There
 are values for both `x` and `y` which will lead to signed integer underflow.
 So like before, in languages like C and C++, you just unconditionally invoked
-undefined behavior since signed integer underflow is undefined. So we'll also
-call this a "tie".
+undefined behavior since signed integer underflow is undefined.
 
-The **only** correct way to write this is as:
+It turns out that computing differences safely is actually quite hard for
+signed integers because of underflow, even in languages which support wrapping
+behavior for them, e.g `INT_MAX - INT_MIN` is still going to be incorrect. 
+There just isn't a trivial way to do this safely, this is the best technique
+I currently know of.
+```cpp
+if (y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y) {
+    // error
+} else {
+    delta = abs(x - y);
+}
+```
+
+For unsigned integers however, it's so much easier to just write:
 ```cpp
 delta = max(x, y) - min(x, y);
 ```
-This works regardless of the sigedeness of `x` and `y` and will always give you
-the absolute difference safely. It may just be me, but it also reads better too,
-you don't even need to name the variable `delta` anymore, the context is self
-documenting.
+Which will always give you the absolute difference safely. It may just be me,
+but it also reads better too, you don't even need to name the variable `delta`
+anymore, the context is self documenting.
 
 ### Computing indices with signed arithmetic is safer
 An extension to the above argument is that if you have a more complicated
@@ -127,17 +144,42 @@ save you either because it's easy for the sum to exceed `2^64-1` too.
 
 Like the previous example, this code is just wrong.
 
-The safe signed way of writing this isn't simpler by any means either,
-since you wouldn't expect to have to write it as:
+In fact, computing the mid-point of two variables safely is pretty much
+impossible in any language without the help of a library function because
+as wrap or otherwise, there is specific inputs that will fail.
+
+One common solution for signed is to rewrite it to this idiom, which still fails
+for `high = INT_MAX` and `low = INT_MIN`.
 ```cpp
 int mid = low + (high - low) / 2;
 ```
 
-However, had you just stuck with unsigned integers, you could write it the
-obvious way you originally intended to, precisely because overflow is
-well-defined and does the right thing here.
+Sticking with unsigned integers, you might think you can write it the obvious
+way you originally intended to precisely because underflow is well-defined
+but we'll see that in the following:
 ```cpp
 size_t mid = (low + high) / 2;
+```
+This doesn't actually work for e.g: `low = 0x80000000` and `high = 0x80000002`,
+which would underflow and produce `2`, divided by `2`, producing `1`, when the
+correct answer is actually `0x80000001`.
+
+Where unsigned does benefit here is when these are used as indices into an array.
+The signed behavior will almost certainly produce invalid indices which leads to
+memory unsafety issues. The unsigned way will never do that, it'll stay bounded,
+even if the index it produces is actually wrong, which is a less-severe logic
+bug, but can still be used maliciously.
+
+The correct safe way to do this regardless of signedness is to convert
+everything to unsigned and account for the wrapping with masked addition.
+```cpp
+// U is the unsigned version of your type T, or same as T if T already unsigned
+U shift = digits - 1; // numeric digits (not including sign) in your type T.
+                      // std::numeric_limits<T>::digits in C++ is helpful here.
+U difference = (U)x - (U)y;
+U sign = y < x;
+U half = (difference / 2) + (sign << shift) + (sign & difference);
+T mid = (T)(x + half);
 ```
 
 > I picked this as real-world, non-contrived example. You can expect to find
@@ -170,7 +212,8 @@ overflow though and you should just learn the extremely simple and obvious test
 if (y && x > (T)-1/y)
 ```
 > Where `(T)-1` here is your unsigned type and casting `-1` just gives you the max
-value, i.e every bit set.
+value, i.e every bit set. You can also use `~((T)0)`, `UINT{8,16,32,64}?_MAX`,
+or `numeric_limits<T>::max()` in C++, there's a lot of ways to compute this value.
 
 ### Sentinel values
 One extremely common use of signed integers is using the negative range to encode
@@ -244,17 +287,39 @@ examples, if the signed integers wrapped, they would almost always produce
 negative values which would either introduce silent logic bugs, or worse,
 memory safety issues if used as indices into arrays as an example.
 
-Unfortunately, for languages based on LLVM, no amount of hand-waving and wanting
-signed wrapping to be defined will work no matter how hard you try, so such
-statements about safety are factually incorrect anyways. Putting aside integer
-divide by zero being a trap representation on all hardware, the less known:
-`INT_MIN / -1` and conversely, `INT_MIN % -1` are [undefined in LLVM](https://blog.regehr.org/archives/887) in all possible configurations and thus invoke undefined behavior
-even in languages like Odin.
-
 > The only way to ever make safe use of signed integers in this manner is to
 bounds check all array accesses, which has a appreciable, non-negligible runtime
 cost. Bounds checking is also quite error prone if not automated as it's easy
 to forget to check at all and often unmaintained under code refactoring.
+
+Unfortunately, for languages based on LLVM, no amount of hand-waving and wanting
+signed wrapping to be defined will work no matter how hard you try, so such
+statements about safety are factually incorrect anyways. Here's a somewhat
+exhaustive list of all the undefined behavior of signed integer arithmetic 
+in LLVM which applies to all languages which use LLVM:
+* `x / 0`
+* `INT_MIN / -1`, or `INT_MAX % -1`
+* `INT_MAX - INT_MIN`
+
+> These are certain to produce invalid results in languages like Odin.
+
+## What about trapping?
+Some languages such as Rust instead take a different approach where any
+integer underflow or overflow in debug builds will lead to a trap representation
+where your program will panic. Sanitizers for C and C++ also exist to help
+detect these problems and because C and C++ define unsigned underflow to wrap,
+it's actually the case that the use of signed integers is better as it's the
+only way you can get trap behavior for integers, as using it on unsigned would
+trigger trap representations for valid code that relies on that behavior.
+
+Trap representations are actually quite terrible since they can only trigger at
+runtime when those paths are successfully executed with the correct trap-producing
+inputs. This coverage is impossible to expect in any non-trivial program even
+with tons of unit tests. The idea is also incompatible in many contexts such as
+library code where you almost never want the library to panic, but rather all
+errors be recoverable by the calling application code. Or in service-availability
+sensitive code which must not be susceptible to denial of service attack vectors,
+where a panic is pretty much game over.
 
 ## Your counter arguments are about pathological inputs
 It's been my experience that our intuition of what is and isn't a pathological
@@ -264,11 +329,15 @@ of remembering the assumptions made to correctly check for pathological or
 malicious inputs in all cases and keep them updated during refactoring is far
 too enormous to successfully maintain.
 
-One of the most famous cases of this stubborn attitude is the infamous [qmail
-64-bit remote code execution](https://www.guninski.com/where_do_you_want_billg_to_go_today_4.html) exploit which Daniel J. Bernstein denied a bounty
-for and can still be exploited as of [2020](https://www.qualys.com/2020/05/19/cve-2005-1513/)
+One of the most famous cases of this stubborn attitude is the [infamous qmail
+64-bit remote code execution exploit](https://www.guninski.com/where_do_you_want_billg_to_go_today_4.html) which Daniel J. Bernstein denied a bounty
+for and can still be [exploited as of 2020](https://www.qualys.com/2020/05/19/cve-2005-1513/)
 
-These are very classical **signed** integer overflow, pointer with **signed** index and **signedness** problems writes the very exploit author.
+These are:
+> "classical **signed** integer overflow, pointer with **signed**
+index and **signedness** problems"
+
+Writes the very exploit author.
 
 The use of unsigned integer arithmetic not only prevents these bugs, it forces
 you to think about pathological and malicious inputs more directly because it
@@ -277,10 +346,19 @@ becomes more evident.
 ## The arguments for unsigned
 
 ### Most integers in a program never represent negative values
+The use of unsigned is a good type indication of the numeric range of the
+integer, in much the same way sized integer types are too. The immediate
+ability to disregard negative quantities is one of the largest benefits to
+actually using unsigned variables. It's a simple observation to make that most
+values in a program never actually are negative and never can become negative,
+we should be encoding that intent and behavior within the type system for the
+added safety and benefits it provides.
+
 I cannot find a research paper I once read from Intel which claimed from their
 observations that **only 3% of the integers** in an entire desktop x86 Windows
-**ever represented negative values**. Regardless, if that 3% figure is correct,
-then i'd expect to see 97% of integer types in a codebase to be unsigned.
+system **ever represented negative values**. Regardless, if that 3% figure is
+correct, then given the above opinion, I would expect to see ~97% of integer
+types in a codebase being unsigned.
 
 ### Compiler diagnostics are better for unsigned but that's worse overall
 If safety is one of the primary motivations behind the use of signed integer
@@ -294,10 +372,14 @@ diagnostics are unfortunately provided with the intent of being helpful, but
 in practice are actively malicious because they encourage silencing in the form
 of unsafe type casting.
 
-The reality is that the use of signed and unsigned paints all your integers red or blue, respectively. [What color is Your Function](https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/). The more of one you use, the more likely it is
+The reality is that the use of signed and unsigned paints all your integers red
+or blue, respectively. [What color is Your Function](https://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/). The more of one you use, the more likely it is
 everything will also share the same signedness regardless of if it's appropriate.
-Since most integers never represent negative values though, I think it's more
-appropriate to paint everything blue in this case.
+Since most integers never require representing negative values, I personally
+think it's more appropriate to paint everything blue in this case. The exception
+is negative integer values. The rule is mostly positive integer values. The
+default of any programming language should align with the rule, rather than the
+exception.
 
 ### Checking for overflow and underflow is easier and safer
 Since C and C++ make signed integer overflow and underflow undefined, it's
