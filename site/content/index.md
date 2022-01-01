@@ -212,7 +212,7 @@ malloc(sizeof(Object) * n)
 ```
 If such an expression were to overflow then `malloc` will allocate and return
 a pointer for memory not actually sufficiently large for all `n` `Object`. Again,
-signed here does not save, as in practice this will silently avoid the memory
+signed here does not save us, in practice this will silently avoid the memory
 safety issue by over-allocating around 4 GiB of memory had you used `int` since
 a negative casted to `size_t` becomes about that large. Random resource
 exhaustion is not exactly a better situation to be in either.
@@ -291,9 +291,9 @@ of all the possible values.
 
 ### It's the default
 This is a weak argument, but it's at least the only one that is hard to refute.
-C and C++ default `int` to signed and that's a historical thing that has
-persisted in many languages that are descendants of C. It's generally agreed
-upon now that a lot of defaults in C were bad, maybe we should add this too?
+C and C++ default `int` to signed and that's a legacy choice that has persisted
+in many languages that are descendants of C. It's generally agreed upon now that
+a lot of defaults in C were bad, maybe we should consider this too?
 
 ## What if signed was defined to wrap?
 Some languages like Go and [Odin](https://odin-lang.org/) claim to avoid these
