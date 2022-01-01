@@ -273,7 +273,7 @@ easy for the sum to exceed <code>2^63-1</code> too.</p>
 <p>Like the previous example, this code is just not ideal.</p>
 <p>In fact, computing the mid-point of two variables safely is pretty much
 impossible in any language without the help of a library function because
-as wrap or otherwise, there is specific inputs that will fail.</p>
+with wrapping or otherwise, there is specific inputs that will fail.</p>
 <p>One common solution for signed is to rewrite it to this idiom, which still fails
 for <code>high = INT_MAX</code> and <code>low = INT_MIN</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">int</span> mid <span style="color:#f92672">=</span> low <span style="color:#f92672">+</span> (high <span style="color:#f92672">-</span> low) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
