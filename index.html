@@ -270,7 +270,7 @@ to the nearest integer. When the sum of <code>low</code> and <code>high</code> e
 sum overflows (invoking undefined behavior) to a negative value and the negative
 stays negative when divided. Using a larger signed integer type here does not
 save you either because it&rsquo;s easy for the sum to exceed <code>2^63-1</code> too.</p>
-<p>Like the previous example, this code is just wrong.</p>
+<p>Like the previous example, this code is just not ideal.</p>
 <p>In fact, computing the mid-point of two variables safely is pretty much
 impossible in any language without the help of a library function because
 as wrap or otherwise, there is specific inputs that will fail.</p>
