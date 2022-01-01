@@ -212,10 +212,10 @@ malloc(sizeof(Object) * n)
 ```
 If such an expression were to overflow then `malloc` will allocate and return
 a pointer for memory not actually sufficiently large for all `n` `Object`. Again,
-signed here does not save you practice this will silently avoid the memory safety issue by over-allocating
-around 4 GiB of memory had you used `int` since a negative casted to `size_t`
-becomes about that large. Random resource exhaustion is not exactly a better
-situation to be in here.
+signed here does not save, as in practice this will silently avoid the memory
+safety issue by over-allocating around 4 GiB of memory had you used `int` since
+a negative casted to `size_t` becomes about that large. Random resource
+exhaustion is not exactly a better situation to be in either.
 
 There are a couple better ways to write this. The first obvious one is just
 use `calloc`. That does have a zeroing cost though and doesn't help if you need
