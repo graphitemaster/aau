@@ -188,6 +188,7 @@ bug, but can still be used maliciously.
 
 The correct safe way to do this regardless of signedness is to convert
 everything to unsigned and account for the wrapping with masked addition.
+This should really just be a general function in your codebase though.
 ```cpp
 // U is the unsigned version of your type T, or same as T if T already unsigned
 U shift = digits - 1; // numeric digits (not including sign) in your type T.
@@ -197,6 +198,7 @@ U sign = y < x;
 U half = (difference / 2) + (sign << shift) + (sign & difference);
 T mid = (T)(x + half);
 ```
+> C++ actually has `std::midpoint` which does precisely this.
 
 > I picked this as real-world, non-contrived example. You can expect to find
 this in binary searches, merge sort, and pretty much any other divide-and-conquer

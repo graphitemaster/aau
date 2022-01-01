@@ -294,7 +294,8 @@ memory unsafety issues. The unsigned way will never do that, it&rsquo;ll stay bo
 even if the index it produces is actually wrong, which is a less-severe logic
 bug, but can still be used maliciously.</p>
 <p>The correct safe way to do this regardless of signedness is to convert
-everything to unsigned and account for the wrapping with masked addition.</p>
+everything to unsigned and account for the wrapping with masked addition.
+This should really just be a general function in your codebase though.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">// U is the unsigned version of your type T, or same as T if T already unsigned
 </span><span style="color:#75715e"></span>U shift <span style="color:#f92672">=</span> digits <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; <span style="color:#75715e">// numeric digits (not including sign) in your type T.
 </span><span style="color:#75715e"></span>                      <span style="color:#75715e">// std::numeric_limits&lt;T&gt;::digits in C++ is helpful here.
@@ -303,6 +304,9 @@ U sign <span style="color:#f92672">=</span> y <span style="color:#f92672">&lt;</
 U half <span style="color:#f92672">=</span> (difference <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&lt;&lt;</span> shift) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&amp;</span> difference);
 T mid <span style="color:#f92672">=</span> (T)(x <span style="color:#f92672">+</span> half);
 </code></pre></div><blockquote>
+<p>C++ actually has <code>std::midpoint</code> which does precisely this.</p>
+</blockquote>
+<blockquote>
 <p>I picked this as real-world, non-contrived example. You can expect to find
 this in binary searches, merge sort, and pretty much any other divide-and-conquer
 algorithm.</p>
