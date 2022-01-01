@@ -546,26 +546,25 @@ right thing, almost all code that uses signed integers to represent values that
 will never be negative, tends to have a cacophony of range assertions and other
 tests which are just as error-prone as bounds checking to remembering to write,
 but also maintain when refactoring. It&rsquo;s truly underappreciated how much those
-tests can just go if your integer can never actually become negative due to the
-type system itself. It&rsquo;s extremely similar to not having raw pointers, in that
-you never have to check for null pointers. In many ways signed integers are the
-null pointers of integers.</p>
+tests can be eliminated if your integer can never actually become negative due
+to the type system itself. It&rsquo;s extremely similar to not having raw pointers, in
+that you never have to check for null pointers. In many ways signed integers are
+the null pointers of integers.</p>
 <h4 id="but-signed-has-optimizations-that-unsigned-does-not">
   But signed has optimizations that unsigned does not?
   <a class="anchor" href="#but-signed-has-optimizations-that-unsigned-does-not">#</a>
 </h4>
-<p>It&rsquo;s true there are some optimizations compilers can make assuming signed
-integers cannot underflow or overflow that you would otherwise not get to
-participate in had you used unsigned. The less known reality is that 
-  <a href="https://en.wikipedia.org/wiki/Value_range_analysis">value range
-analysis</a> is an optimization
-that can apply to any numeric type of any numeric range in modern 
-  <a href="https://developers.redhat.com/blog/2021/04/28/value-range-propagation-in-gcc-with-project-ranger">optimizing
-compilers</a>. The <code>enum</code> example from
+<p>There are some optimizations compilers can make assuming signed integers cannot
+underflow or overflow that unsigned does not get to participate in. What is less
+known is that 
+  <a href="https://en.wikipedia.org/wiki/Value_range_analysis">value range analysis</a>
+is an optimization that can apply to any numeric type of any numeric range in
+modern [optimizing compilers](
+  <a href="https://developers.redhat.com/blog/2021/04/28">https://developers.redhat.com/blog/2021/04/28</a> value-range-propagation-in-gcc-with-project-ranger). The <code>enum</code> example from
 earlier is something where this would apply, despite that being an unsigned type.
 You can define numeric ranges as compiler hints with simple guiding branches,
-e.g the expression <code>b = a + 2</code> immediately establishes that <code>b &gt; a</code>, which the
-compiler can use to optimize.</p>
+e.g: the expression <code>b = a + 2</code> immediately establishes that <code>b &gt; a</code>, which the
+compiler can use to optimize later.</p>
 </article>
  
       
