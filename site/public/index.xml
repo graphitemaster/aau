@@ -13,7 +13,8 @@
       
       <guid>https://graphitemaster.github.io/aau/</guid>
       <description>Almost Always Unsigned #  Written by Dale Weiler
-  Twitter  GitHub  The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively.</description>
+  Twitter  GitHub  Last updated Saturday, January 1, 2022
+The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively.</description>
     </item>
     
   </channel>

@@ -5,10 +5,12 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Almost Always Unsigned #  Written by Dale Weiler
-  Twitter  GitHub  The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively.">
+  Twitter  GitHub  Last updated Saturday, January 1, 2022
+The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively.">
 <meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Almost Always Unsigned" />
 <meta property="og:description" content="Almost Always Unsigned #  Written by Dale Weiler
-  Twitter  GitHub  The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively." />
+  Twitter  GitHub  Last updated Saturday, January 1, 2022
+The need for signed integer arithmetic is often misplaced as most integers never represent negative values within a program. The indexing of arrays and iteration count of a loop reflects this concept as well. There should be a propensity to use unsigned integers more often than signed, yet despite this, most code incorrectly choses to use signed integers almost exclusively." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://graphitemaster.github.io/aau/" /><meta property="article:section" content="" />
 
@@ -144,6 +146,7 @@ https://github.com/alex-shpak/hugo-book
 <li>
   <a href="https://github.com/graphitemaster">GitHub</a></li>
 </ul>
+<p>Last updated Saturday, January 1, 2022</p>
 <p>The need for signed integer arithmetic is often misplaced as most integers
 never represent negative values within a program. The indexing of arrays and
 iteration count of a loop reflects this concept as well. There should be a
@@ -242,7 +245,7 @@ So like before, in languages like C and C++, you just unconditionally invoked
 undefined behavior since signed integer underflow is undefined.</p>
 <p>It turns out that computing differences safely is actually quite hard for
 signed integers because of underflow, even in languages which support wrapping
-behavior for them, e.g <code>INT_MAX - INT_MIN</code> is still going to be incorrect.
+behavior for them, e.g <code>INT_MAX - INT_MIN</code> is still going to be incorrect even.
 There just isn&rsquo;t a trivial way to do this safely; this is the best technique
 I currently know of.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">if</span> ((y <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> x <span style="color:#f92672">&lt;</span> INT_MIN <span style="color:#f92672">+</span> y) <span style="color:#f92672">||</span> (y <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> x <span style="color:#f92672">&gt;</span> INT_MAX <span style="color:#f92672">+</span> y)) {
@@ -285,7 +288,7 @@ for <code>high = INT_MAX</code> and <code>low = INT_MIN</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">int</span> mid <span style="color:#f92672">=</span> low <span style="color:#f92672">+</span> (high <span style="color:#f92672">-</span> low) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
 </code></pre></div><p>Sticking with unsigned integers, you might think you can write it the obvious
 way you originally intended to precisely because underflow is well-defined
-but we&rsquo;ll see that in the following:</p>
+but we&rsquo;ll see that this has problems too.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">size_t mid <span style="color:#f92672">=</span> (low <span style="color:#f92672">+</span> high) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
 </code></pre></div><p>This doesn&rsquo;t actually work for e.g: <code>low = 0x80000000</code> and <code>high = 0x80000002</code>,
 which would underflow and produce <code>2</code> which divided by <code>2</code> produces <code>1</code>, when
@@ -293,13 +296,13 @@ the correct value is actually <code>0x80000001</code>.</p>
 <p>Where unsigned does benefit here is when these are used as indices into an array.
 The signed behavior will almost certainly produce invalid indices which leads to
 memory unsafety issues. The unsigned way will never do that, it&rsquo;ll stay bounded,
-even if the index it produces is actually wrong, which is a less-severe logic
-bug, but can still be used maliciously.</p>
+even if the index it produces is actually wrong. This is a much less-severe
+logic bug, but can still be used maliciously depending on context.</p>
 <p>The correct safe way to do this regardless of signedness is to convert
 everything to unsigned and account for the wrapping with masked addition.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">T <span style="color:#a6e22e">midpoint</span>(T x, T y) {
     <span style="color:#75715e">// U is the unsigned version of your type T, or same as T if T already unsigned
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// numeric digits (not including sign) in your type T.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// digits is the number of numeric digits (not including sign) in your type T.
 </span><span style="color:#75715e"></span>    <span style="color:#75715e">// std::numeric_limits&lt;T&gt;::digits in C++ is helpful here.
 </span><span style="color:#75715e"></span>    U shift <span style="color:#f92672">=</span> digits <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
     U difference <span style="color:#f92672">=</span> (U)x <span style="color:#f92672">-</span> (U)y;
@@ -329,10 +332,22 @@ a negative casted to <code>size_t</code> becomes about that large. Random resour
 exhaustion is not exactly a better situation to be in either.</p>
 <p>There are a couple better ways to write this. The first obvious one is just
 use <code>calloc</code>. That does have a zeroing cost though and doesn&rsquo;t help if you need
-to <code>realloc</code>. In C++ you should just be using array <code>new[]</code> since you don&rsquo;t
-need to multiply anything.</p>
+to <code>realloc</code>.</p>
+<p>Languages like C++ and Go noticed this problem and solved them in cleaner ways,
+eliminating the need for the dangerous multiply.</p>
+<ul>
+<li>C++
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">new</span> Object[n];
+</code></pre></div></li>
+<li>Go
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">make([]<span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">n</span>);
+
+<span style="color:#75715e">// But it also even has an explicit n * m form as well.
+</span><span style="color:#75715e"></span>make([]<span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">n</span>, <span style="color:#a6e22e">m</span>);
+</code></pre></div></li>
+</ul>
 <p>Those don&rsquo;t apply generally though. It&rsquo;s very trivial to check if <code>x * y</code> would
-overflow though and you should just learn the extremely simple and obvious test</p>
+overflow though and you should just learn the extremely simple and obvious test.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">if</span> (y <span style="color:#f92672">&amp;&amp;</span> x <span style="color:#f92672">&gt;</span> (T)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">/</span>y)
 </code></pre></div><blockquote>
 <p>Where <code>(T)-1</code> here is your unsigned type and casting <code>-1</code> just gives you the max
@@ -360,13 +375,13 @@ You can still have sentinels with unsigned too, not that you should.</p>
 <p>There are multiple better and safer ways to express this, for instance.</p>
 <ul>
 <li>
-<p>We could have an out param for the result instead.</p>
+<p>An out parameter for the result. Not exactly clean looking though.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">if</span> (uint result; connect(<span style="color:#f92672">&amp;</span>result)) {
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
 </code></pre></div></li>
 <li>
-<p>We can return a tuple or pair.</p>
+<p>A return of a tuple or pair. Little nicer looking.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">tuple<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">bool</span>, uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
 pair<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">bool</span>, uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
 <span style="color:#66d9ef">if</span> (get<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span><span style="color:#f92672">&gt;</span>(result)) {
@@ -374,11 +389,11 @@ pair<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">bool</spa
 </span><span style="color:#75715e"></span>}
 </code></pre></div></li>
 <li>
-<p>We could use an option type.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">option<span style="color:#f92672">&lt;</span>uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
-maybe<span style="color:#f92672">&lt;</span>uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
-<span style="color:#66d9ef">if</span> (result) {
-    <span style="color:#75715e">// ...
+<p>We could use an option type. Quite common in Rust.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// connect returns Option&lt;u32&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">match</span> connect() {
+Some(<span style="color:#66d9ef">u32</span>) <span style="color:#f92672">=&gt;</span> <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>None      <span style="color:#f92672">=&gt;</span> <span style="color:#75715e">// error
 </span><span style="color:#75715e"></span>}
 </code></pre></div></li>
 <li>
@@ -397,7 +412,18 @@ ConnectionStatus status <span style="color:#f92672">=</span> connect();
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
 </code></pre></div></li>
+<li>
+<p>Some languages like Odin and Go have multiple return and the preferred
+idiomatic way is the following.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">connect</span>();
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>    }
+</code></pre></div></li>
 </ul>
+<p>These are all superior methods which eliminate the need to encoding error states
+in the negative portion of a signed integer and are all representable in almost
+any language.</p>
 <h3 id="its-the-default">
   It&rsquo;s the default
   <a class="anchor" href="#its-the-default">#</a>

@@ -10,6 +10,8 @@ Written by Dale Weiler
 * [Twitter](https://twitter.com/actualGraphite)
 * [GitHub](https://github.com/graphitemaster)
 
+Last updated Saturday, January 1, 2022
+
 The need for signed integer arithmetic is often misplaced as most integers
 never represent negative values within a program. The indexing of arrays and
 iteration count of a loop reflects this concept as well. There should be a
@@ -118,7 +120,7 @@ undefined behavior since signed integer underflow is undefined.
 
 It turns out that computing differences safely is actually quite hard for
 signed integers because of underflow, even in languages which support wrapping
-behavior for them, e.g `INT_MAX - INT_MIN` is still going to be incorrect. 
+behavior for them, e.g `INT_MAX - INT_MIN` is still going to be incorrect even.
 There just isn't a trivial way to do this safely; this is the best technique
 I currently know of.
 ```cpp
@@ -128,6 +130,7 @@ if ((y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y)) {
     delta = abs(x - y);
 }
 ```
+
 
 For unsigned integers however, it's much easier to just write
 ```cpp
@@ -173,7 +176,7 @@ int mid = low + (high - low) / 2;
 
 Sticking with unsigned integers, you might think you can write it the obvious
 way you originally intended to precisely because underflow is well-defined
-but we'll see that in the following:
+but we'll see that this has problems too.
 ```cpp
 size_t mid = (low + high) / 2;
 ```
@@ -184,15 +187,15 @@ the correct value is actually `0x80000001`.
 Where unsigned does benefit here is when these are used as indices into an array.
 The signed behavior will almost certainly produce invalid indices which leads to
 memory unsafety issues. The unsigned way will never do that, it'll stay bounded,
-even if the index it produces is actually wrong, which is a less-severe logic
-bug, but can still be used maliciously.
+even if the index it produces is actually wrong. This is a much less-severe
+logic bug, but can still be used maliciously depending on context.
 
 The correct safe way to do this regardless of signedness is to convert
 everything to unsigned and account for the wrapping with masked addition.
 ```cpp
 T midpoint(T x, T y) {
     // U is the unsigned version of your type T, or same as T if T already unsigned
-    // numeric digits (not including sign) in your type T.
+    // digits is the number of numeric digits (not including sign) in your type T.
     // std::numeric_limits<T>::digits in C++ is helpful here.
     U shift = digits - 1;
     U difference = (U)x - (U)y;
@@ -213,6 +216,7 @@ the following in C.
 ```c
 malloc(sizeof(Object) * n)
 ```
+
 If such an expression were to overflow then `malloc` will allocate and return
 a pointer for memory not actually sufficiently large for all `n` `Object`. Again,
 signed here does not save us, in practice this will silently avoid the memory
@@ -222,11 +226,24 @@ exhaustion is not exactly a better situation to be in either.
 
 There are a couple better ways to write this. The first obvious one is just
 use `calloc`. That does have a zeroing cost though and doesn't help if you need
-to `realloc`. In C++ you should just be using array `new[]` since you don't
-need to multiply anything.
+to `realloc`.
+
+Languages like C++ and Go noticed this problem and solved them in cleaner ways,
+eliminating the need for the dangerous multiply.
+* C++
+    ```cpp
+    new Object[n];
+    ```
+* Go
+    ```go
+    make([]Object, n);
+
+    // But it also even has an explicit n * m form as well.
+    make([]Object, n, m);
+    ```
 
 Those don't apply generally though. It's very trivial to check if `x * y` would
-overflow though and you should just learn the extremely simple and obvious test
+overflow though and you should just learn the extremely simple and obvious test.
 ```cpp
 if (y && x > (T)-1/y)
 ```
@@ -251,13 +268,13 @@ Where anything but a positive value is an error.
 > This is typical of early C.
 
 There are multiple better and safer ways to express this, for instance.
-* We could have an out param for the result instead.
+* An out parameter for the result. Not exactly clean looking though.
     ```cpp
     if (uint result; connect(&result)) {
         // ...
     }
     ```
-* We can return a tuple or pair.
+* A return of a tuple or pair. Little nicer looking.
     ```cpp
     tuple<bool, uint> result = connect();
     pair<bool, uint> result = connect();
@@ -265,19 +282,18 @@ There are multiple better and safer ways to express this, for instance.
         // ...
     }
     ```
-* We could use an option type.
-    ```cpp
-    option<uint> result = connect();
-    maybe<uint> result = connect();
-    if (result) {
-        // ...
+* We could use an option type. Quite common in Rust.
+    ```rust
+    // connect returns Option<u32>
+    match connect() {
+    Some(u32) => // ...
+    None      => // error
     }
     ```
 
 * However, if the numeric range is well-defined to begin with, just define
 the entire domain and avoid using full-range integers to represent a subset
 of all the possible values.
-
     ```cpp
     enum class ConnectionStatus : unsigned {
         Connected,
@@ -291,6 +307,19 @@ of all the possible values.
         // ...
     }
     ```
+
+* Some languages like Odin and Go have multiple return and the preferred
+idiomatic way is the following.
+    ```go
+        status, err := connect();
+        if err != nil {
+            // ...
+        }
+    ```
+
+These are all superior methods which eliminate the need to encoding error states
+in the negative portion of a signed integer and are all representable in almost
+any language.
 
 ### It's the default
 This is a weak argument, but it's at least the only one that is hard to refute.
