@@ -448,7 +448,7 @@ runtime when those paths are successfully executed with the correct trap-produci
 inputs. This coverage is impossible to expect in any non-trivial program even
 with exhaustive unit testing. The idea is also incompatible in many contexts such
 as library code where you almost never want the library to panic, but rather all
-errors be recoverable by the calling application code. Or in service-availability
+errors be recoverable by the calling application code, or in service-availability
 sensitive code which must not be susceptible to denial of service attacks,
 where a panic is pretty much not acceptable.</p>
 <h2 id="your-counter-arguments-are-about-pathological-inputs">
