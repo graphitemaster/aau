@@ -320,22 +320,22 @@ applies to all languages which use LLVM:
 > These are certain to produce invalid results in languages like Go, Rust, and Odin.
 
 ## What about trapping?
-Some languages such as Rust instead take a different approach where any
-integer underflow or overflow in debug builds will lead to a trap representation
-where your program will panic. Sanitizers for C and C++ also exist to help
-detect these problems and because C and C++ define unsigned underflow to wrap,
-it's actually the case that the use of signed integers is better as it's the
-only way you can get trap behavior for integers, as using it on unsigned would
-trigger trap representations for valid code that relies on that behavior.
+Some languages such as Rust take a different approach where any integer underflow
+or overflow in debug builds will lead to a trap representation where your program
+will panic. Sanitizers for C and C++ also exist to help detect these problems and
+because C and C++ define unsigned underflow to wrap, it's actually the case that
+the use of signed integers is better as it's the only way you can get trap
+behavior for integers, as using it on unsigned would trigger trap representations
+for valid code that relies on that behavior.
 
-Trap representations are actually quite terrible since they can only trigger at
+Trap representations are actually quite insufficient as they can only trigger at
 runtime when those paths are successfully executed with the correct trap-producing
 inputs. This coverage is impossible to expect in any non-trivial program even
-with tons of unit tests. The idea is also incompatible in many contexts such as
-library code where you almost never want the library to panic, but rather all
+with exhaustive unit testing. The idea is also incompatible in many contexts such
+as library code where you almost never want the library to panic, but rather all
 errors be recoverable by the calling application code. Or in service-availability
-sensitive code which must not be susceptible to denial of service attack vectors,
-where a panic is pretty much game over.
+sensitive code which must not be susceptible to denial of service attacks,
+where a panic is pretty much not acceptable.
 
 ## Your counter arguments are about pathological inputs
 It's been my experience that our intuition of what is and isn't a pathological
