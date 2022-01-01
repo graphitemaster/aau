@@ -16,25 +16,27 @@ iteration count of a loop reflects this concept as well. There should be a
 propensity to use unsigned integers more often than signed, yet despite this,
 most code incorrectly choses to use signed integers almost exclusively.
 
-The code presented in here will be mostly C and C++ and will be mostly specific
-to C and C inspired languages, but we'll see later that it also applies to
-other languages which attempt to solve some of these problems, just in different
-ways.
+Most of the motivation of this article applies to C and C++, but examples for
+other languages such as Go, Rust and [Odin](https://odin-lang.org/) will also be
+presented in an attempt to establish that this concept applies to all
+languages, regardless of their choices (for instance C and C++ leave signed
+integer wrap undefined), but rather is intrinsic to the arithmetic itself.
 
 ## The arguments against unsigned
-There are a lot of arguments against the use of unsigned integers. Lets discuss
-how they're mostly incorrect.
+There are a lot of arguments against the use of unsigned integers. Let me
+explain why I think they're mostly incorrect.
 
 ### The safety argument
 The most typical argument against the use of unsigned integers is that it's
 more error prone since it's far easier for an expression to underflow than it
-is to overflow. This advice is so common that the official [Google C++ Style
-Guide](https://google.github.io/styleguide/cppguide.html#Integer_Types) outright discourages the use of unsigned types.
+is to overflow. This advice is so common that the official
+[Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html#Integer_Types)
+outright discourages the use of unsigned types.
 
 We'll see in the following arguments where these safety issues come from and how
 to easily avoid them with trivial idioms that are easier to understand than
 using signed everywhere. We'll also see that these arguments are incorrect most
-of the time as they encourage continuing to use bad code.
+of the time as they encourage continuing to write and use unsafe code.
 
 ### The loop in reverse argument
 When the counter of a for loop needs to count in reverse and the body of
@@ -48,7 +50,7 @@ for (int64_t i = int64_t(size) - 1; i >= 0; i--) {
 }
 ```
 Of course this is dangerous as it's a narrowing conversion, with a cast which
-silences a legitimate compiler diagnostic. It invokes undefined behavior when
+silences a legitimate warning. In C and C++ it invokes undefined behavior when
 given specific large values and most certainly is exploitable. Most applications
 would just crash on inputs `>= 0x7ffffffffffffffff`. The typical argument is
 that such a value would be "pathological". Not only is this argument incorrect,
@@ -64,8 +66,11 @@ well now you have an even worse danger. Mainly, for languages like C and C++,
 you just unconditionally invoked undefined behavior since signed integer
 overflow is undefined.
 
+> In languages that define wrap behavior like Go and Odin, this loop just won't
+work correctly.
+
 The correct approach here is that unsigned underflow is well-defined in C and
-C++, and we should be teaching the behavior of wrapping arithmetic as it's
+C++ and we should be teaching the behavior of wrapping arithmetic as it's
 genuinely useful in general, but it also makes reverse iteration as easy as
 forward.
 ```cpp
@@ -73,16 +78,27 @@ for (size_t i = size - 1; i < size; i--) {
     // ...
 }
 ```
-The loop counter begins from `size - 1` and counts down on each iteration. When
-the counter reaches zero, the decrement causes the counter to underflow and wrap
-around to the max possible value of `size_t`. This value is far larger than
-`size`, so the condition `i < size` evaluates false and the loop stops.
+
+In general, the approach here is to begin from `size - 1` and count down on each
+iteration. When the counter reaches zero, the decrement causes the counter to
+underflow and wrap around to the max possible value of the unsigned type. This
+value is far larger than `size`, so the condition `i < size` evaluates false and
+the loop stops.
+
+Languages like Rust chose to make even unsigned underflow a trap representation
+in Debug builds, but specific features like `Range` will let you safely achieve
+the same efficient wrapping behavior on underflow with much cleaner syntax.
+```rust
+for i in (0..size).rev() {
+    // ...
+}
+```
 
 With this approach, no casts were needed, no silent bugs were introduced, and
 the "pathological" input still works correctly. In fact, this form permits every
 possible value from `[0, 0xffffffffffffffff)`, covering the entire range.
 
-It should be noted that if `size == 0` this loop still works because `0 - 1`
+It should be noted that if `size == 0` these loops stil works because `0 - 1`
 produces the largest possible value of the unsigned type which is larger than
 `size` (still `0`) and so the loop never enters.
 
@@ -121,8 +137,8 @@ For unsigned integers however, it's so much easier to just write:
 delta = max(x, y) - min(x, y);
 ```
 Which will always give you the absolute difference safely. It may just be me,
-but it also reads better too, you don't even need to name the variable `delta`
-anymore, the context is self documenting.
+but it also reads better too, you don't need to name the variable `delta` anymore
+as the context is self documenting.
 
 ### Computing indices with signed arithmetic is safer
 An extension to the above argument is that if you have a more complicated
@@ -281,7 +297,7 @@ upon now that a lot of defaults in C were bad, maybe we should add this too?
 
 ## What if signed was defined to wrap?
 Some languages like Go and [Odin](https://odin-lang.org/) claim to avoid these
-problems because their signed integer is well-defined to wrap on underflow or
+problems because signed integer arithmetic is defined to wrap on underflow and
 overflow. The safety arguments there are incorrect as well. In all the previous
 examples, if the signed integers wrapped, they would almost always produce
 negative values which would either introduce silent logic bugs, or worse,

@@ -148,29 +148,32 @@ never represent negative values within a program. The indexing of arrays and
 iteration count of a loop reflects this concept as well. There should be a
 propensity to use unsigned integers more often than signed, yet despite this,
 most code incorrectly choses to use signed integers almost exclusively.</p>
-<p>The code presented in here will be mostly C and C++ and will be mostly specific
-to C and C inspired languages, but we&rsquo;ll see later that it also applies to
-other languages which attempt to solve some of these problems, just in different
-ways.</p>
+<p>Most of the motivation of this article applies to C and C++, but examples for
+other languages such as Go, Rust and 
+  <a href="https://odin-lang.org/">Odin</a> will also be
+presented in an attempt to establish that this concept applies to all
+languages, regardless of their choices (for instance C and C++ leave signed
+integer wrap undefined), but rather is intrinsic to the arithmetic itself.</p>
 <h2 id="the-arguments-against-unsigned">
   The arguments against unsigned
   <a class="anchor" href="#the-arguments-against-unsigned">#</a>
 </h2>
-<p>There are a lot of arguments against the use of unsigned integers. Lets discuss
-how they&rsquo;re mostly incorrect.</p>
+<p>There are a lot of arguments against the use of unsigned integers. Let me
+explain why I think they&rsquo;re mostly incorrect.</p>
 <h3 id="the-safety-argument">
   The safety argument
   <a class="anchor" href="#the-safety-argument">#</a>
 </h3>
 <p>The most typical argument against the use of unsigned integers is that it&rsquo;s
 more error prone since it&rsquo;s far easier for an expression to underflow than it
-is to overflow. This advice is so common that the official 
-  <a href="https://google.github.io/styleguide/cppguide.html#Integer_Types">Google C++ Style
-Guide</a> outright discourages the use of unsigned types.</p>
+is to overflow. This advice is so common that the official
+
+  <a href="https://google.github.io/styleguide/cppguide.html#Integer_Types">Google C++ Style Guide</a>
+outright discourages the use of unsigned types.</p>
 <p>We&rsquo;ll see in the following arguments where these safety issues come from and how
 to easily avoid them with trivial idioms that are easier to understand than
 using signed everywhere. We&rsquo;ll also see that these arguments are incorrect most
-of the time as they encourage continuing to use bad code.</p>
+of the time as they encourage continuing to write and use unsafe code.</p>
 <h3 id="the-loop-in-reverse-argument">
   The loop in reverse argument
   <a class="anchor" href="#the-loop-in-reverse-argument">#</a>
@@ -183,7 +186,7 @@ find unsigned difficult to use because <code>i &gt;= 0</code> will always evalua
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
 </code></pre></div><p>Of course this is dangerous as it&rsquo;s a narrowing conversion, with a cast which
-silences a legitimate compiler diagnostic. It invokes undefined behavior when
+silences a legitimate warning. In C and C++ it invokes undefined behavior when
 given specific large values and most certainly is exploitable. Most applications
 would just crash on inputs <code>&gt;= 0x7ffffffffffffffff</code>. The typical argument is
 that such a value would be &ldquo;pathological&rdquo;. Not only is this argument incorrect,
@@ -197,21 +200,32 @@ sage advice of Google to always used signed and had that large value anyways,
 well now you have an even worse danger. Mainly, for languages like C and C++,
 you just unconditionally invoked undefined behavior since signed integer
 overflow is undefined.</p>
+<blockquote>
+<p>In languages that define wrap behavior like Go and Odin, this loop just won&rsquo;t
+work correctly.</p>
+</blockquote>
 <p>The correct approach here is that unsigned underflow is well-defined in C and
-C++, and we should be teaching the behavior of wrapping arithmetic as it&rsquo;s
+C++ and we should be teaching the behavior of wrapping arithmetic as it&rsquo;s
 genuinely useful in general, but it also makes reverse iteration as easy as
 forward.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">for</span> (size_t i <span style="color:#f92672">=</span> size <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> size; i<span style="color:#f92672">--</span>) {
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
-</code></pre></div><p>The loop counter begins from <code>size - 1</code> and counts down on each iteration. When
-the counter reaches zero, the decrement causes the counter to underflow and wrap
-around to the max possible value of <code>size_t</code>. This value is far larger than
-<code>size</code>, so the condition <code>i &lt; size</code> evaluates false and the loop stops.</p>
-<p>With this approach, no casts were needed, no silent bugs were introduced, and
+</code></pre></div><p>In general, the approach here is to begin from <code>size - 1</code> and count down on each
+iteration. When the counter reaches zero, the decrement causes the counter to
+underflow and wrap around to the max possible value of the unsigned type. This
+value is far larger than <code>size</code>, so the condition <code>i &lt; size</code> evaluates false and
+the loop stops.</p>
+<p>Languages like Rust chose to make even unsigned underflow a trap representation
+in Debug builds, but specific features like <code>Range</code> will let you safely achieve
+the same efficient wrapping behavior on underflow with much cleaner syntax.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">for</span> i <span style="color:#66d9ef">in</span> (<span style="color:#ae81ff">0</span><span style="color:#f92672">..</span>size).rev() {
+    <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>With this approach, no casts were needed, no silent bugs were introduced, and
 the &ldquo;pathological&rdquo; input still works correctly. In fact, this form permits every
 possible value from <code>[0, 0xffffffffffffffff)</code>, covering the entire range.</p>
-<p>It should be noted that if <code>size == 0</code> this loop still works because <code>0 - 1</code>
+<p>It should be noted that if <code>size == 0</code> these loops stil works because <code>0 - 1</code>
 produces the largest possible value of the unsigned type which is larger than
 <code>size</code> (still <code>0</code>) and so the loop never enters.</p>
 <h3 id="the-difference-of-two-numbers-can-become-negative">
@@ -242,8 +256,8 @@ I currently know of.</p>
 </code></pre></div><p>For unsigned integers however, it&rsquo;s so much easier to just write:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">delta <span style="color:#f92672">=</span> max(x, y) <span style="color:#f92672">-</span> min(x, y);
 </code></pre></div><p>Which will always give you the absolute difference safely. It may just be me,
-but it also reads better too, you don&rsquo;t even need to name the variable <code>delta</code>
-anymore, the context is self documenting.</p>
+but it also reads better too, you don&rsquo;t need to name the variable <code>delta</code> anymore
+as the context is self documenting.</p>
 <h3 id="computing-indices-with-signed-arithmetic-is-safer">
   Computing indices with signed arithmetic is safer
   <a class="anchor" href="#computing-indices-with-signed-arithmetic-is-safer">#</a>
@@ -393,7 +407,7 @@ upon now that a lot of defaults in C were bad, maybe we should add this too?</p>
 </h2>
 <p>Some languages like Go and 
   <a href="https://odin-lang.org/">Odin</a> claim to avoid these
-problems because their signed integer is well-defined to wrap on underflow or
+problems because signed integer arithmetic is defined to wrap on underflow and
 overflow. The safety arguments there are incorrect as well. In all the previous
 examples, if the signed integers wrapped, they would almost always produce
 negative values which would either introduce silent logic bugs, or worse,
