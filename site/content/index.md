@@ -317,7 +317,7 @@ in LLVM which applies to all languages which use LLVM:
 * `INT_MIN / -1`, or `INT_MAX % -1`
 * `INT_MAX - INT_MIN`
 
-> These are certain to produce invalid results in languages like Rust and Odin.
+> These are certain to produce invalid results in languages like Go, Rust, and Odin.
 
 ## What about trapping?
 Some languages such as Rust instead take a different approach where any
