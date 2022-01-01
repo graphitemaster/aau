@@ -310,9 +310,9 @@ to forget to check and often unmaintained under code refactoring.
 
 Unfortunately, for languages based on LLVM, no amount of hand-waving and wanting
 signed wrapping to be defined will work no matter how hard you try, so such
-statements about safety are factually incorrect anyways. Here's a somewhat
-exhaustive list of all the undefined behavior of signed integer arithmetic 
-in LLVM which applies to all languages which use LLVM:
+statements about safety are factually incorrect. Here's a somewhat non-exhaustive
+list of all the undefined behavior of signed integer arithmetic in LLVM which
+applies to all languages which use LLVM:
 * `x / 0`
 * `INT_MIN / -1`, or `INT_MAX % -1`
 * `INT_MAX - INT_MIN`
