@@ -96,7 +96,7 @@ With this approach, no casts were needed, no silent bugs were introduced, and
 the "pathological" input still works correctly. In fact, this form permits every
 possible value from `[0, 0xffffffffffffffff)`, covering the entire range.
 
-It should be noted that if `size == 0` these loops stil works because `0 - 1`
+It should be noted that if `size == 0` these loops still work because `0 - 1`
 produces the largest possible value of the unsigned type which is larger than
 `size` (still `0`) and so the loop never enters.
 
