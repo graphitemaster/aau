@@ -433,7 +433,7 @@ There are some optimizations compilers can make assuming signed integers cannot
 underflow or overflow that unsigned does not get to participate in. What is less
 known is that [value range analysis](https://en.wikipedia.org/wiki/Value_range_analysis)
 is an optimization that can apply to any numeric type of any numeric range in
-modern [optimizing compilers](https://developers.redhat.com/blog/2021/04/28 value-range-propagation-in-gcc-with-project-ranger). The `enum` example from
+modern [optimizing compilers](https://developers.redhat.com/blog/2021/04/28/value-range-propagation-in-gcc-with-project-ranger). The `enum` example from
 earlier is something where this would apply, despite that being an unsigned type.
 You can define numeric ranges as compiler hints with simple guiding branches,
 e.g: the expression `b = a + 2` immediately establishes that `b > a`, which the
