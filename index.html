@@ -207,11 +207,11 @@ useful in general, but it also makes reverse iteration as easy as forward.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">for</span> (size_t i <span style="color:#f92672">=</span> size <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> size; i<span style="color:#f92672">--</span>) {
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
-</code></pre></div><p>In general, the approach here is to begin from <code>size - 1</code> and count down on each
-iteration. When the counter reaches zero, the decrement causes the counter to
-underflow and wrap around to the max possible value of the unsigned type. This
-value is far larger than <code>size</code>, so the condition <code>i &lt; size</code> evaluates false and
-the loop stops.</p>
+</code></pre></div><p>The approach here is to begin from <code>size - 1</code> and count down on each iteration.
+When the counter reaches zero, the decrement causes the counter to underflow and
+wrap around to the max possible value of the unsigned type. This value is far
+larger than <code>size</code>, so the condition <code>i &lt; size</code> evaluates false and the loop
+stops.</p>
 <p>Languages like Rust chose to make even unsigned underflow a trap representation
 in Debug builds, but specific features like <code>Range</code> will let you safely achieve
 the same efficient wrapping behavior on underflow with much cleaner syntax.</p>
