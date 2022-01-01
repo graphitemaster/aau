@@ -76,11 +76,11 @@ for (size_t i = size - 1; i < size; i--) {
 }
 ```
 
-In general, the approach here is to begin from `size - 1` and count down on each
-iteration. When the counter reaches zero, the decrement causes the counter to
-underflow and wrap around to the max possible value of the unsigned type. This
-value is far larger than `size`, so the condition `i < size` evaluates false and
-the loop stops.
+The approach here is to begin from `size - 1` and count down on each iteration.
+When the counter reaches zero, the decrement causes the counter to underflow and
+wrap around to the max possible value of the unsigned type. This value is far
+larger than `size`, so the condition `i < size` evaluates false and the loop
+stops.
 
 Languages like Rust chose to make even unsigned underflow a trap representation
 in Debug builds, but specific features like `Range` will let you safely achieve
