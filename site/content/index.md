@@ -91,7 +91,7 @@ for i in (0..size).rev() {
 }
 ```
 
-With this approach, no casts were needed, no silent bugs were introduced, and
+With this approach, no casts are needed, no silent bugs are introduced, and
 the "pathological" input still works correctly. In fact, this form permits every
 possible value from `[0, 0xffffffffffffffff)`, covering the entire range.
 
