@@ -58,16 +58,14 @@ it's even more dangerous which we will see later.
 
 This danger is one of the supporting arguments behind always using signed
 integer arithmetic. The argument is incorrect though, because `int64_t` would
-never permit a value `>= 0x7ffffffffffffffff` anyways. It's only avoiding
-the issue in so much as the specific problematic numeric range is no longer
-allowed. Tough luck if you needed a value that large and if you followed the
-sage advice of Google to always used signed and had that large value anyways,
-well now you have an even worse danger. Mainly, for languages like C and C++,
-you just unconditionally invoked undefined behavior since signed integer
-overflow is undefined.
-
-> In languages that define wrap behavior like Go and Odin, this loop just won't
-work correctly.
+never permit a value `>= 0x7ffffffffffffffff`. It's only avoiding the issue in
+that the specific problematic numeric range above that limit is no longer allowed.
+Tough luck if you needed a value that large and if you followed the sage advice
+of Google to always used signed and had that large value, well now you have a
+significantly worse problem, as you now invoked signed overflow unconditionally.
+Which for languages like C and C++, invoke undefined behavior. While languages
+like Go and Odin will wrap and have the wrong numeric ranges in the loop
+as a result of that wrap behavior.
 
 The correct approach here is that unsigned underflow is well-defined in C and
 C++ and we should be teaching the behavior of wrapping arithmetic as it's
