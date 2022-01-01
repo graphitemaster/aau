@@ -159,7 +159,7 @@ Like the previous example, this code is just not ideal.
 
 In fact, computing the mid-point of two variables safely is pretty much
 impossible in any language without the help of a library function because
-as wrap or otherwise, there is specific inputs that will fail.
+with wrapping or otherwise, there is specific inputs that will fail.
 
 One common solution for signed is to rewrite it to this idiom, which still fails
 for `high = INT_MAX` and `low = INT_MIN`.
