@@ -153,7 +153,7 @@ This is how most people would write it. The average of low and high, truncated
 to the nearest integer. When the sum of `low` and `high` exceeds `2^31-1` the
 sum overflows (invoking undefined behavior) to a negative value and the negative
 stays negative when divided. Using a larger signed integer type here does not
-save you either because it's easy for the sum to exceed `2^64-1` too.
+save you either because it's easy for the sum to exceed `2^63-1` too.
 
 Like the previous example, this code is just wrong.
 
