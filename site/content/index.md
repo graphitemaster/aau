@@ -202,16 +202,16 @@ this in binary searches, merge sort, and pretty much any other divide-and-conque
 algorithm.
 
 ### Unsigned multiplication can overflow
-This is a very common complaint for memory safety specifically because unsigned
-multiplication is most often seen when allocating arrays. It's tempting to write
-the following in C.
+When multiplying unsigned variables it's a concern it'll overflow and produce
+a value far smaller than the correct value. This is a very common complaint for
+memory safety specifically because unsigned multiplication is most often seen
+when allocating arrays. It's tempting to write the following in C.
 ```c
 malloc(sizeof(Object) * n)
 ```
 If such an expression were to overflow then `malloc` will allocate and return
 a pointer for memory not actually sufficiently large for all `n` `Object`. Again,
-signed here does not save you, since overflow is undefined in C and C++. In
-practice this will silently avoid the memory safety issue by over-allocating
+signed here does not save you practice this will silently avoid the memory safety issue by over-allocating
 around 4 GiB of memory had you used `int` since a negative casted to `size_t`
 becomes about that large. Random resource exhaustion is not exactly a better
 situation to be in here.
