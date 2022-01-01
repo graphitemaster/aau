@@ -119,6 +119,7 @@ https://github.com/alex-shpak/hugo-book
         <li><a href="#compiler-diagnostics-are-better-for-unsigned-but-thats-worse-overall">Compiler diagnostics are better for unsigned but that&rsquo;s worse overall</a></li>
         <li><a href="#checking-for-overflow-and-underflow-is-easier-and-safer">Checking for overflow and underflow is easier and safer</a></li>
         <li><a href="#your-code-will-be-simpler-and-faster">Your code will be simpler and faster</a></li>
+        <li><a href="#it-actually-works">It actually works</a></li>
       </ul>
     </li>
   </ul>
@@ -265,7 +266,12 @@ and overflow, yet it manifests for signed in significantly worse ways.</p>
 <p>Lets take the most trivial &ldquo;slightly more complicated&rdquo; expression to compute an
 index as an example: the middle of interval.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">int</span> mid <span style="color:#f92672">=</span> (low <span style="color:#f92672">+</span> high) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
-</code></pre></div><p>This is how most people would write it. The average of low and high, truncated
+</code></pre></div><blockquote>
+<p>I picked this as a real-world, non-contrived example. You can expect to find
+this in binary searches, merge sort, and pretty much any other divide-and-conquer
+algorithm.</p>
+</blockquote>
+<p>This is how most people would write it. The average of low and high, truncated
 to the nearest integer. When the sum of <code>low</code> and <code>high</code> exceeds <code>2^31-1</code> the
 sum overflows to a negative value and the negative stays negative when divided.
 Using a larger signed integer type here does not save you either because it&rsquo;s
@@ -290,22 +296,20 @@ memory unsafety issues. The unsigned way will never do that, it&rsquo;ll stay bo
 even if the index it produces is actually wrong, which is a less-severe logic
 bug, but can still be used maliciously.</p>
 <p>The correct safe way to do this regardless of signedness is to convert
-everything to unsigned and account for the wrapping with masked addition.
-This should really just be a general function in your codebase though.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">// U is the unsigned version of your type T, or same as T if T already unsigned
-</span><span style="color:#75715e"></span>U shift <span style="color:#f92672">=</span> digits <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; <span style="color:#75715e">// numeric digits (not including sign) in your type T.
-</span><span style="color:#75715e"></span>                      <span style="color:#75715e">// std::numeric_limits&lt;T&gt;::digits in C++ is helpful here.
-</span><span style="color:#75715e"></span>U difference <span style="color:#f92672">=</span> (U)x <span style="color:#f92672">-</span> (U)y;
-U sign <span style="color:#f92672">=</span> y <span style="color:#f92672">&lt;</span> x;
-U half <span style="color:#f92672">=</span> (difference <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&lt;&lt;</span> shift) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&amp;</span> difference);
-T mid <span style="color:#f92672">=</span> (T)(x <span style="color:#f92672">+</span> half);
+everything to unsigned and account for the wrapping with masked addition.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">T <span style="color:#a6e22e">midpoint</span>(T x, T y) {
+    <span style="color:#75715e">// U is the unsigned version of your type T, or same as T if T already unsigned
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// numeric digits (not including sign) in your type T.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// std::numeric_limits&lt;T&gt;::digits in C++ is helpful here.
+</span><span style="color:#75715e"></span>    U shift <span style="color:#f92672">=</span> digits <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>;
+    U difference <span style="color:#f92672">=</span> (U)x <span style="color:#f92672">-</span> (U)y;
+    U sign <span style="color:#f92672">=</span> y <span style="color:#f92672">&lt;</span> x;
+    U half <span style="color:#f92672">=</span> (difference <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&lt;&lt;</span> shift) <span style="color:#f92672">+</span> (sign <span style="color:#f92672">&amp;</span> difference);
+    T mid <span style="color:#f92672">=</span> (T)(x <span style="color:#f92672">+</span> half);
+    <span style="color:#66d9ef">return</span> mid;
+}
 </code></pre></div><blockquote>
 <p>C++ actually has <code>std::midpoint</code> which does precisely this.</p>
-</blockquote>
-<blockquote>
-<p>I picked this as a real-world, non-contrived example. You can expect to find
-this in binary searches, merge sort, and pretty much any other divide-and-conquer
-algorithm.</p>
 </blockquote>
 <h3 id="unsigned-multiplication-can-overflow">
   Unsigned multiplication can overflow
@@ -365,7 +369,7 @@ You can still have sentinels with unsigned too, not that you should.</p>
 <p>We can return a tuple or pair.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">tuple<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">bool</span>, uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
 pair<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">bool</span>, uint<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> connect();
-<span style="color:#66d9ef">if</span> (result.first) {
+<span style="color:#66d9ef">if</span> (get<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span><span style="color:#f92672">&gt;</span>(result)) {
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
 </code></pre></div></li>
@@ -426,7 +430,8 @@ list of all the undefined behavior of signed integer arithmetic in LLVM which
 applies to all languages which use LLVM:</p>
 <ul>
 <li><code>x / 0</code></li>
-<li><code>INT_MIN / -1</code>, or <code>INT_MAX % -1</code></li>
+<li><code>INT_MIN / -1</code></li>
+<li><code>INT_MAX % -1</code></li>
 <li><code>INT_MAX - INT_MIN</code></li>
 </ul>
 <blockquote>
@@ -528,7 +533,10 @@ almost impossible to write safe, correct, and obvious code to check for it.</p>
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> (x <span style="color:#f92672">-</span> y <span style="color:#f92672">&gt;</span> x) <span style="color:#75715e">// subtraction underflows
 </span></code></pre></div><p>Will either get compiled away, or miscompiled as it invokes undefined behavior.</p>
 <blockquote>
-<p>Yet this is perfectly fine and safe for unsigned integers, always.</p>
+<p>This is perfectly fine and safe for unsigned integers.</p>
+</blockquote>
+<blockquote>
+<p>In languages which have defined signed wrap such as Odin, this should work as well except for <code>INT_MIN</code> and <code>INT_MAX</code> as previously mentioned due to LLVM.</p>
 </blockquote>
 <p>For a fun laugh, this is the only correct way (that I know of) to detect for
 signed integer overflow and underflow in standard C or C++.</p>
@@ -550,10 +558,6 @@ tests can be eliminated if your integer can never actually become negative due
 to the type system itself. It&rsquo;s extremely similar to not having raw pointers, in
 that you never have to check for null pointers. In many ways signed integers are
 the null pointers of integers.</p>
-<h4 id="but-signed-has-optimizations-that-unsigned-does-not">
-  But signed has optimizations that unsigned does not?
-  <a class="anchor" href="#but-signed-has-optimizations-that-unsigned-does-not">#</a>
-</h4>
 <p>There are some optimizations compilers can make assuming signed integers cannot
 underflow or overflow that unsigned does not get to participate in. What is less
 known is that 
@@ -565,6 +569,18 @@ earlier is something where this would apply, despite that being an unsigned type
 You can define numeric ranges as compiler hints with simple guiding branches,
 e.g: the expression <code>b = a + 2</code> immediately establishes that <code>b &gt; a</code>, which the
 compiler can use to optimize later.</p>
+<h3 id="it-actually-works">
+  It actually works
+  <a class="anchor" href="#it-actually-works">#</a>
+</h3>
+<p>You might be wondering how possible it is to actually use unsigned almost always
+as this title suggests. It&rsquo;s been my personal preference for half a decade now
+and I haven&rsquo;t actually missed signed integers since switching to it. It&rsquo;s made
+my code much easier, cleaner, and more robust contrary to popular wisdom.</p>
+<p>I would not suggest trying to use it in an existing codebase that is mostly
+signed integers, in such contexts you&rsquo;re more likely to introduce silent bugs
+and issues as a result of unsafe type casts. But consider trying it next time
+you start a new project, you might be pleasantly surprised.</p>
 </article>
  
       
@@ -615,6 +631,7 @@ compiler can use to optimize later.</p>
         <li><a href="#compiler-diagnostics-are-better-for-unsigned-but-thats-worse-overall">Compiler diagnostics are better for unsigned but that&rsquo;s worse overall</a></li>
         <li><a href="#checking-for-overflow-and-underflow-is-easier-and-safer">Checking for overflow and underflow is easier and safer</a></li>
         <li><a href="#your-code-will-be-simpler-and-faster">Your code will be simpler and faster</a></li>
+        <li><a href="#it-actually-works">It actually works</a></li>
       </ul>
     </li>
   </ul>
