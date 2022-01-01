@@ -311,10 +311,11 @@ algorithm.</p>
   Unsigned multiplication can overflow
   <a class="anchor" href="#unsigned-multiplication-can-overflow">#</a>
 </h3>
-<p>When multiplying unsigned variables it&rsquo;s a concern it&rsquo;ll overflow and produce
-a value far smaller than the correct value. This is a very common complaint for
-memory safety specifically because unsigned multiplication is most often seen
-when allocating arrays. It&rsquo;s tempting to write the following in C.</p>
+<p>When multiplying unsigned variables it&rsquo;s a concern that such expressions will
+easily overflow and produce a value far smaller than the correct value. This is
+a very common complaint for memory safety specifically because unsigned
+multiplication is most often seen when allocating arrays. It&rsquo;s tempting to write
+the following in C.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">malloc(<span style="color:#66d9ef">sizeof</span>(Object) <span style="color:#f92672">*</span> n)
 </code></pre></div><p>If such an expression were to overflow then <code>malloc</code> will allocate and return
 a pointer for memory not actually sufficiently large for all <code>n</code> <code>Object</code>. Again,
