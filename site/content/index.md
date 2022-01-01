@@ -202,10 +202,11 @@ this in binary searches, merge sort, and pretty much any other divide-and-conque
 algorithm.
 
 ### Unsigned multiplication can overflow
-When multiplying unsigned variables it's a concern it'll overflow and produce
-a value far smaller than the correct value. This is a very common complaint for
-memory safety specifically because unsigned multiplication is most often seen
-when allocating arrays. It's tempting to write the following in C.
+When multiplying unsigned variables it's a concern that such expressions will
+easily overflow and produce a value far smaller than the correct value. This is
+a very common complaint for memory safety specifically because unsigned
+multiplication is most often seen when allocating arrays. It's tempting to write
+the following in C.
 ```c
 malloc(sizeof(Object) * n)
 ```
