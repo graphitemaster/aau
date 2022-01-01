@@ -306,7 +306,7 @@ memory safety issues if used as indices into arrays as an example.
 > The only way to ever make safe use of signed integers in this manner is to
 bounds check all array accesses, which has a appreciable, non-negligible runtime
 cost. Bounds checking is also quite error prone if not automated as it's easy
-to forget to check at all and often unmaintained under code refactoring.
+to forget to check and often unmaintained under code refactoring.
 
 Unfortunately, for languages based on LLVM, no amount of hand-waving and wanting
 signed wrapping to be defined will work no matter how hard you try, so such
