@@ -203,8 +203,7 @@ like Go and Odin will wrap and have the wrong numeric ranges in the loop
 as a result of that wrap behavior.</p>
 <p>The correct approach here is that unsigned underflow is well-defined in C and
 C++ and we should be teaching the behavior of wrapping arithmetic as it&rsquo;s
-genuinely useful in general, but it also makes reverse iteration as easy as
-forward.</p>
+useful in general, but it also makes reverse iteration as easy as forward.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">for</span> (size_t i <span style="color:#f92672">=</span> size <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> size; i<span style="color:#f92672">--</span>) {
     <span style="color:#75715e">// ...
 </span><span style="color:#75715e"></span>}
