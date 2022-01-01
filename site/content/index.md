@@ -159,7 +159,7 @@ Like the previous example, this code is just not ideal.
 
 In fact, computing the mid-point of two variables safely is pretty much
 impossible in any language without the help of a library function because
-with wrapping or otherwise, there is specific inputs that will fail.
+with wrapping or otherwise, there are specific inputs that fail.
 
 One common solution for signed is to rewrite it to this idiom, which still fails
 for `high = INT_MAX` and `low = INT_MIN`.
@@ -197,7 +197,7 @@ T mid = (T)(x + half);
 ```
 > C++ actually has `std::midpoint` which does precisely this.
 
-> I picked this as real-world, non-contrived example. You can expect to find
+> I picked this as a real-world, non-contrived example. You can expect to find
 this in binary searches, merge sort, and pretty much any other divide-and-conquer
 algorithm.
 
