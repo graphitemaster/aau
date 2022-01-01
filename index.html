@@ -559,8 +559,8 @@ underflow or overflow that unsigned does not get to participate in. What is less
 known is that 
   <a href="https://en.wikipedia.org/wiki/Value_range_analysis">value range analysis</a>
 is an optimization that can apply to any numeric type of any numeric range in
-modern [optimizing compilers](
-  <a href="https://developers.redhat.com/blog/2021/04/28">https://developers.redhat.com/blog/2021/04/28</a> value-range-propagation-in-gcc-with-project-ranger). The <code>enum</code> example from
+modern 
+  <a href="https://developers.redhat.com/blog/2021/04/28/value-range-propagation-in-gcc-with-project-ranger">optimizing compilers</a>. The <code>enum</code> example from
 earlier is something where this would apply, despite that being an unsigned type.
 You can define numeric ranges as compiler hints with simple guiding branches,
 e.g: the expression <code>b = a + 2</code> immediately establishes that <code>b &gt; a</code>, which the
