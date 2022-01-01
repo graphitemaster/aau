@@ -319,7 +319,7 @@ the following in C.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">malloc(<span style="color:#66d9ef">sizeof</span>(Object) <span style="color:#f92672">*</span> n)
 </code></pre></div><p>If such an expression were to overflow then <code>malloc</code> will allocate and return
 a pointer for memory not actually sufficiently large for all <code>n</code> <code>Object</code>. Again,
-signed here does not save, as in practice this will silently avoid the memory
+signed here does not save us, in practice this will silently avoid the memory
 safety issue by over-allocating around 4 GiB of memory had you used <code>int</code> since
 a negative casted to <code>size_t</code> becomes about that large. Random resource
 exhaustion is not exactly a better situation to be in either.</p>
@@ -399,9 +399,9 @@ ConnectionStatus status <span style="color:#f92672">=</span> connect();
   <a class="anchor" href="#its-the-default">#</a>
 </h3>
 <p>This is a weak argument, but it&rsquo;s at least the only one that is hard to refute.
-C and C++ default <code>int</code> to signed and that&rsquo;s a historical thing that has
-persisted in many languages that are descendants of C. It&rsquo;s generally agreed
-upon now that a lot of defaults in C were bad, maybe we should add this too?</p>
+C and C++ default <code>int</code> to signed and that&rsquo;s a legacy choice that has persisted
+in many languages that are descendants of C. It&rsquo;s generally agreed upon now that
+a lot of defaults in C were bad, maybe we should consider this too?</p>
 <h2 id="what-if-signed-was-defined-to-wrap">
   What if signed was defined to wrap?
   <a class="anchor" href="#what-if-signed-was-defined-to-wrap">#</a>
