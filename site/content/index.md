@@ -155,7 +155,7 @@ sum overflows (invoking undefined behavior) to a negative value and the negative
 stays negative when divided. Using a larger signed integer type here does not
 save you either because it's easy for the sum to exceed `2^63-1` too.
 
-Like the previous example, this code is just wrong.
+Like the previous example, this code is just not ideal.
 
 In fact, computing the mid-point of two variables safely is pretty much
 impossible in any language without the help of a library function because
