@@ -423,19 +423,18 @@ right thing, almost all code that uses signed integers to represent values that
 will never be negative, tends to have a cacophony of range assertions and other
 tests which are just as error-prone as bounds checking to remembering to write,
 but also maintain when refactoring. It's truly underappreciated how much those
-tests can just go if your integer can never actually become negative due to the
-type system itself. It's extremely similar to not having raw pointers, in that
-you never have to check for null pointers. In many ways signed integers are the
-null pointers of integers.
+tests can be eliminated if your integer can never actually become negative due
+to the type system itself. It's extremely similar to not having raw pointers, in
+that you never have to check for null pointers. In many ways signed integers are
+the null pointers of integers.
 
 #### But signed has optimizations that unsigned does not?
-It's true there are some optimizations compilers can make assuming signed
-integers cannot underflow or overflow that you would otherwise not get to
-participate in had you used unsigned. The less known reality is that [value range
-analysis](https://en.wikipedia.org/wiki/Value_range_analysis) is an optimization
-that can apply to any numeric type of any numeric range in modern [optimizing
-compilers](https://developers.redhat.com/blog/2021/04/28/value-range-propagation-in-gcc-with-project-ranger). The `enum` example from
+There are some optimizations compilers can make assuming signed integers cannot
+underflow or overflow that unsigned does not get to participate in. What is less
+known is that [value range analysis](https://en.wikipedia.org/wiki/Value_range_analysis)
+is an optimization that can apply to any numeric type of any numeric range in
+modern [optimizing compilers](https://developers.redhat.com/blog/2021/04/28 value-range-propagation-in-gcc-with-project-ranger). The `enum` example from
 earlier is something where this would apply, despite that being an unsigned type.
 You can define numeric ranges as compiler hints with simple guiding branches,
-e.g the expression `b = a + 2` immediately establishes that `b > a`, which the
-compiler can use to optimize.
+e.g: the expression `b = a + 2` immediately establishes that `b > a`, which the
+compiler can use to optimize later.
