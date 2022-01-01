@@ -144,7 +144,7 @@ I think this argument primarily comes from an invalid intuition of underflow
 and overflow, yet it manifests for signed in significantly worse ways.
 
 Lets take the most trivial "slightly more complicated" expression to compute an
-index as an example, the middle in an interval.
+index as an example: the middle of interval.
 ```cpp
 int mid = (low + high) / 2;
 ```
