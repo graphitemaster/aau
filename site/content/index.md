@@ -119,7 +119,7 @@ undefined behavior since signed integer underflow is undefined.
 It turns out that computing differences safely is actually quite hard for
 signed integers because of underflow, even in languages which support wrapping
 behavior for them, e.g `INT_MAX - INT_MIN` is still going to be incorrect. 
-There just isn't a trivial way to do this safely, this is the best technique
+There just isn't a trivial way to do this safely; this is the best technique
 I currently know of.
 ```cpp
 if ((y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y)) {
@@ -129,13 +129,13 @@ if ((y > 0 && x < INT_MIN + y) || (y < 0 && x > INT_MAX + y)) {
 }
 ```
 
-For unsigned integers however, it's so much easier to just write:
+For unsigned integers however, it's much easier to just write
 ```cpp
 delta = max(x, y) - min(x, y);
 ```
-Which will always give you the absolute difference safely. It may just be me,
-but it also reads better too, you don't need to name the variable `delta` anymore
-as the context is self documenting.
+This will always give the absolute difference safely. It might be personal
+preference, but I find this easier to read too. The name `delta` is no longer
+necessary as the expression is self-documenting.
 
 ### Computing indices with signed arithmetic is safer
 An extension to the above argument is that if you have a more complicated
