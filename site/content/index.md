@@ -149,6 +149,10 @@ index as an example: the middle of interval.
 int mid = (low + high) / 2;
 ```
 
+> I picked this as a real-world, non-contrived example. You can expect to find
+this in binary searches, merge sort, and pretty much any other divide-and-conquer
+algorithm.
+
 This is how most people would write it. The average of low and high, truncated
 to the nearest integer. When the sum of `low` and `high` exceeds `2^31-1` the
 sum overflows to a negative value and the negative stays negative when divided.
@@ -185,21 +189,20 @@ bug, but can still be used maliciously.
 
 The correct safe way to do this regardless of signedness is to convert
 everything to unsigned and account for the wrapping with masked addition.
-This should really just be a general function in your codebase though.
 ```cpp
-// U is the unsigned version of your type T, or same as T if T already unsigned
-U shift = digits - 1; // numeric digits (not including sign) in your type T.
-                      // std::numeric_limits<T>::digits in C++ is helpful here.
-U difference = (U)x - (U)y;
-U sign = y < x;
-U half = (difference / 2) + (sign << shift) + (sign & difference);
-T mid = (T)(x + half);
+T midpoint(T x, T y) {
+    // U is the unsigned version of your type T, or same as T if T already unsigned
+    // numeric digits (not including sign) in your type T.
+    // std::numeric_limits<T>::digits in C++ is helpful here.
+    U shift = digits - 1;
+    U difference = (U)x - (U)y;
+    U sign = y < x;
+    U half = (difference / 2) + (sign << shift) + (sign & difference);
+    T mid = (T)(x + half);
+    return mid;
+}
 ```
 > C++ actually has `std::midpoint` which does precisely this.
-
-> I picked this as a real-world, non-contrived example. You can expect to find
-this in binary searches, merge sort, and pretty much any other divide-and-conquer
-algorithm.
 
 ### Unsigned multiplication can overflow
 When multiplying unsigned variables it's a concern that such expressions will
@@ -258,7 +261,7 @@ There are multiple better and safer ways to express this, for instance.
     ```cpp
     tuple<bool, uint> result = connect();
     pair<bool, uint> result = connect();
-    if (result.first) {
+    if (get<0>(result)) {
         // ...
     }
     ```
@@ -314,7 +317,8 @@ statements about safety are factually incorrect. Here's a somewhat non-exhaustiv
 list of all the undefined behavior of signed integer arithmetic in LLVM which
 applies to all languages which use LLVM:
 * `x / 0`
-* `INT_MIN / -1`, or `INT_MAX % -1`
+* `INT_MIN / -1`
+* `INT_MAX % -1`
 * `INT_MAX - INT_MIN`
 
 > These are certain to produce invalid results in languages like Go, Rust, and Odin.
@@ -407,7 +411,9 @@ if (x + y < x) // addition overflows
 if (x - y > x) // subtraction underflows
 ```
 Will either get compiled away, or miscompiled as it invokes undefined behavior.
-> Yet this is perfectly fine and safe for unsigned integers, always.
+> This is perfectly fine and safe for unsigned integers.
+
+> In languages which have defined signed wrap such as Odin, this should work as well except for `INT_MIN` and `INT_MAX` as previously mentioned due to LLVM.
 
 For a fun laugh, this is the only correct way (that I know of) to detect for
 signed integer overflow and underflow in standard C or C++.
@@ -428,7 +434,6 @@ to the type system itself. It's extremely similar to not having raw pointers, in
 that you never have to check for null pointers. In many ways signed integers are
 the null pointers of integers.
 
-#### But signed has optimizations that unsigned does not?
 There are some optimizations compilers can make assuming signed integers cannot
 underflow or overflow that unsigned does not get to participate in. What is less
 known is that [value range analysis](https://en.wikipedia.org/wiki/Value_range_analysis)
@@ -438,3 +443,14 @@ earlier is something where this would apply, despite that being an unsigned type
 You can define numeric ranges as compiler hints with simple guiding branches,
 e.g: the expression `b = a + 2` immediately establishes that `b > a`, which the
 compiler can use to optimize later.
+
+### It actually works
+You might be wondering how possible it is to actually use unsigned almost always
+as this title suggests. It's been my personal preference for half a decade now
+and I haven't actually missed signed integers since switching to it. It's made
+my code much easier, cleaner, and more robust contrary to popular wisdom.
+
+I would not suggest trying to use it in an existing codebase that is mostly
+signed integers, in such contexts you're more likely to introduce silent bugs
+and issues as a result of unsafe type casts. But consider trying it next time
+you start a new project, you might be pleasantly surprised.
