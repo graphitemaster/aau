@@ -69,8 +69,7 @@ as a result of that wrap behavior.
 
 The correct approach here is that unsigned underflow is well-defined in C and
 C++ and we should be teaching the behavior of wrapping arithmetic as it's
-genuinely useful in general, but it also makes reverse iteration as easy as
-forward.
+useful in general, but it also makes reverse iteration as easy as forward.
 ```cpp
 for (size_t i = size - 1; i < size; i--) {
     // ...
